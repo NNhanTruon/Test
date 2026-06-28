@@ -103,8 +103,7 @@ local unitIds = {}
 
 local farming = false
 local autoJoinEnabled = false
-local kaitunPuppeteer = false
-local kaitunGaru = false
+local kaitunEnabled = false
 
 local function getEvoData(template)
     if not template then return nil end
@@ -393,11 +392,16 @@ local autoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
 })
 
 -- ===================================================================
--- CONFIG CHI TIẾT TAB 2: KAITUN (MỚI THÊM)
+-- CONFIG CHI TIẾT TAB 2: KAITUN (dropdown MỚI)
 -- ===================================================================
 Tabs.Kaitun:AddParagraph({
     Title = "Hệ thống Kaitun thông minh",
-    Content = "Tự động kiểm tra túi đồ xem đã có Unit chưa. Nếu chưa có -> Farm Challenge (Normal) để lấy Unit. Nếu đã có -> Auto Farm nguyên liệu Evo (Hard)."
+    Content = "Tự động quét túi đồ xem đã sở hữu Unit chưa. Nếu chưa -> Farm Challenge (Normal) săn Unit. Nếu đã có -> Tự tìm dữ liệu tiến hóa và Auto Farm nguyên liệu Evo (Hard) không cần chỉnh tay Tab 1."
+})
+
+local kaitunDropdown = Tabs.Kaitun:AddDropdown("KaitunTarget", {
+    Title = "Chọn mục tiêu Kaitun",
+    Values = {"Puppeteer", "Garu"}, Multi = false, Default = 1,
 })
 
 local function checkHasUnit(unitName)
@@ -456,14 +460,14 @@ local function enterKaitunChallenge(worldName)
 end
 
 local function doKaitunLoop()
-    local targetUnit = ""
+    if not kaitunEnabled then return end
+    
+    local targetUnit = kaitunDropdown.Value
     local challengeWorld = ""
     
-    if kaitunPuppeteer then
-        targetUnit = "Puppeteer"
+    if targetUnit == "Puppeteer" then
         challengeWorld = "Katakara Bridge"
-    elseif kaitunGaru then
-        targetUnit = "Garu"
+    elseif targetUnit == "Garu" then
         challengeWorld = "The Hero Hunter"
     else
         return
@@ -474,65 +478,72 @@ local function doKaitunLoop()
         -- Chưa có unit -> Đi farm challenge độ khó Normal
         if inHub and create_room and start_remote then
             if not enterKaitunChallenge(challengeWorld) then
-                Options.KaitunPuppeteer:SetValue(false)
-                Options.KaitunGaru:SetValue(false)
+                Options.KaitunToggle:SetValue(false)
                 return
             end
         end
     else
-        -- Đã có unit -> Chuyển sang farm Evo nguyên liệu độ khó Hard
-        local u = selectedUnit
+        -- ĐÃ CÓ UNIT -> TỰ ĐỘNG TÌM DATA EVO CỦA CHÍNH UNIT ĐÓ
+        local u = nil
+        for _, unit in ipairs(units) do
+            if unit.name == targetUnit then
+                u = unit
+                break
+            end
+        end
+
+        -- Backup nếu chưa kịp sync vào bảng cục bộ
         if not u then
-            Fluent:Notify({ Title = "Kaitun thông báo", Content = "Đã có Unit " .. targetUnit .. "! Vui lòng chọn 1 mục tiêu ở Tab 1 để Farm Evo Material Hard.", Duration = 5 })
-            Options.KaitunPuppeteer:SetValue(false)
-            Options.KaitunGaru:SetValue(false)
+            pcall(function()
+                local m = require(utility)
+                if m and m.data and m.data.characters then
+                    for id, char in pairs(m.data.characters) do
+                        if char.name == targetUnit then
+                            local template = findTemplate(targetUnit)
+                            local evo = template and getEvoData(template)
+                            if evo then
+                                u = { name = targetUnit, fullCost = evo.cost, missing = {}, numMissing = 1 }
+                                break
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+
+        if not u then
+            Fluent:Notify({ Title = "Kaitun thông báo", Content = "Đã tìm thấy " .. targetUnit .. " nhưng chưa lấy được bảng công thức Evo từ game!", Duration = 5 })
+            Options.KaitunToggle:SetValue(false)
             return
         end
+
         refreshData(u)
         if u.numMissing == 0 then
-            Fluent:Notify({ Title = "Kaitun hoàn thành", Content = "Unit được chọn đã đủ nguyên liệu tiến hoá!", Duration = 5 })
-            Options.KaitunPuppeteer:SetValue(false)
-            Options.KaitunGaru:SetValue(false)
+            Fluent:Notify({ Title = "Kaitun hoàn thành", Content = "Unit " .. targetUnit .. " đã đủ sạch nguyên liệu tiến hoá!", Duration = 5 })
+            Options.KaitunToggle:SetValue(false)
             return
         end
+
         if inHub and create_room and start_remote then
             if not enterGame(u, "Hard") then
-                Options.KaitunPuppeteer:SetValue(false)
-                Options.KaitunGaru:SetValue(false)
+                Options.KaitunToggle:SetValue(false)
                 return
             end
         end
     end
     
-    while (kaitunPuppeteer or kaitunGaru) do task.wait(5) end
+    while kaitunEnabled do task.wait(5) end
 end
 
-local togglePuppeteer = Tabs.Kaitun:AddToggle("KaitunPuppeteer", {
-    Title = "Kaitun Unit Puppeteer",
-    Description = "Chưa có: Farm Challenge (Normal) | Có rồi: Farm Evo Material (Hard)",
+local kaitunToggle = Tabs.Kaitun:AddToggle("KaitunToggle", {
+    Title = "Kích hoạt Kaitun Thông Minh",
+    Description = "Chạy tiến trình tự động Check & Farm theo mục tiêu bên trên",
     Default = false,
 })
 
-local toggleGaru = Tabs.Kaitun:AddToggle("KaitunGaru", {
-    Title = "Kaitun Unit Garu",
-    Description = "Chưa có: Farm Challenge (Normal) | Có rồi: Farm Evo Material (Hard)",
-    Default = false,
-})
-
-togglePuppeteer:OnChanged(function(val)
-    kaitunPuppeteer = val
+kaitunToggle:OnChanged(function(val)
+    kaitunEnabled = val
     if val then
-        if kaitunGaru then Options.KaitunGaru:SetValue(false) end
-        if farming then autoFarmToggle:SetValue(false) end
-        if autoJoinEnabled then autoJoinToggle:SetValue(false) end
-        if inHub then task.spawn(doKaitunLoop) end
-    end
-end)
-
-toggleGaru:OnChanged(function(val)
-    kaitunGaru = val
-    if val then
-        if kaitunPuppeteer then Options.KaitunPuppeteer:SetValue(false) end
         if farming then autoFarmToggle:SetValue(false) end
         if autoJoinEnabled then autoJoinToggle:SetValue(false) end
         if inHub then task.spawn(doKaitunLoop) end
@@ -643,8 +654,7 @@ pcall(function() gameTeleport = ReplicatedStorage.Remotes.Players:WaitForChild("
 
 if gameEnding then
     gameEnding.OnClientEvent:Connect(function()
-        -- FIX CHÍNH: Nếu không có tính năng tự động nào bật, dừng Replay ngay
-        if not autoJoinEnabled and not farming and not kaitunPuppeteer and not kaitunGaru then
+        if not autoJoinEnabled and not farming and not kaitunEnabled then
             print("Hệ thống tự động đang TẮT. Dừng gửi lệnh Replay lên Server.")
             return
         end
@@ -662,7 +672,7 @@ if gameEnding then
 
         if not endScreen then
             if gameReplay then
-                if autoJoinEnabled or farming or kaitunPuppeteer or kaitunGaru then 
+                if autoJoinEnabled or farming or kaitunEnabled then 
                     pcall(function() gameReplay:FireServer() end) 
                 end
             end
@@ -678,8 +688,8 @@ if gameEnding then
         end
 
         -- Ưu tiên 2: Kaitun Logic ở Tab 2
-        if kaitunPuppeteer or kaitunGaru then
-            local targetUnit = kaitunPuppeteer and "Puppeteer" or "Garu"
+        if kaitunEnabled then
+            local targetUnit = kaitunDropdown.Value
             local hasUnit = checkHasUnit(targetUnit)
             
             local trackedMat = loadCurrentFarmedMat()
@@ -694,16 +704,22 @@ if gameEnding then
                 return
             end
             
-            -- Nếu đang trong giai đoạn farm nguyên liệu Evo (Hard)
-            local u = selectedUnit
+            -- Tự động tìm Unit mục tiêu để check nguyên liệu khi hết trận
+            local u = nil
+            for _, unit in ipairs(units) do
+                if unit.name == targetUnit then
+                    u = unit
+                    break
+                end
+            end
+            
             if u then
                 pcall(refreshData, u)
                 pcall(logMaterialStatus, u)
             end
             
             if not u or u.numMissing == 0 then
-                Options.KaitunPuppeteer:SetValue(false)
-                Options.KaitunGaru:SetValue(false)
+                Options.KaitunToggle:SetValue(false)
                 if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
                 return
             end
@@ -802,14 +818,12 @@ unitDropdown:OnChanged(function(val)
         pcall(logMaterialStatus, u)
         if farming and inHub and u.numMissing > 0 then
             task.spawn(doFarmLoop)
-        elseif (kaitunPuppeteer or kaitunGaru) and inHub then
-            task.spawn(doKaitunLoop)
         end
     end
 end)
 
 autoFarmToggle:OnChanged(function(value)
-    if value and (autoJoinEnabled or kaitunPuppeteer or kaitunGaru) then
+    if value and (autoJoinEnabled or kaitunEnabled) then
         Fluent:Notify({ Title = "Xung đột", Content = "Vui lòng tắt các tính năng Auto khác trước!", Duration = 4 })
         autoFarmToggle:SetValue(false)
         return
@@ -828,7 +842,7 @@ autoFarmToggle:OnChanged(function(value)
 end)
 
 autoJoinToggle:OnChanged(function(value)
-    if value and (farming or kaitunPuppeteer or kaitunGaru) then
+    if value and (farming or kaitunEnabled) then
         Fluent:Notify({ Title = "Xung đột", Content = "Vui lòng tắt các tính năng Auto khác trước!", Duration = 4 })
         autoJoinToggle:SetValue(false)
         return
@@ -893,12 +907,12 @@ task.spawn(function()
     if selectedUnit then refreshData(selectedUnit) end
     if farming and inHub and selectedUnit and selectedUnit.numMissing > 0 then
         task.spawn(doFarmLoop)
-    elseif (kaitunPuppeteer or kaitunGaru) and inHub then
+    elseif kaitunEnabled and inHub then
         task.spawn(doKaitunLoop)
     elseif autoJoinEnabled and inHub then
         task.spawn(doAutoJoinLoop)
     end
 end)
 
-Fluent:Notify({ Title = "Hệ thống", Content = "Đã tích hợp Tab Kaitun thông minh thành công!", Duration = 5 })
+Fluent:Notify({ Title = "Hệ thống", Content = "Đã tích hợp Dropdown Kaitun độc lập thành công!", Duration = 5 })
  
