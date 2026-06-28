@@ -75,7 +75,7 @@ local MATERIAL_DROPS = {
 	["Hunters Cloth"] = { world = "The Hero Hunter", mode = "Challenge", act = 1 },
 	["Garu"] = { world = "The Hero Hunter", mode = "Challenge", act = 1 },
 	["Trait Shards"] = { world = "GT City", mode = "Raid", act = 4 },
-	["Gold"] = { world = "GT City", mode = "Story", acts = {1} },
+	["Gold"] = { world = "GT City", mode = "Squadron", acts = {1} },
 }
 
 local MAP_LIST = { "GT City", "Marine Lobby", "Ninja Village", "Eclipse (Before)", "Katakara Bridge", "The Hero Hunter", "Katakara Wasteland" }
