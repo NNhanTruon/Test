@@ -1,4 +1,4 @@
-repeat task.wait() until game:IsLoaded()
+Repeat task.wait() until game:IsLoaded()
 wait(5)
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
@@ -20,44 +20,66 @@ if inHub then
     start_remote = ReplicatedStorage.Remotes.Play:WaitForChild("start")
 end
 
+-- DANH SÁCH MATERIAL DROPS MỚI ĐẦY ĐỦ
 local MATERIAL_DROPS = {
 	["Zenkai Ore"] = { world = "GT City", mode = "Story", acts = {1,2} },
 	["Ki Resonant Crystal"] = { world = "GT City", mode = "Story", acts = {3,4} },
 	["Stellar Ki Quartz"] = { world = "GT City", mode = "Story", acts = {5,6} },
 	["Limitbreak Obsidian"] = { world = "GT City", mode = "Story", acts = {7,8} },
 	["Eclipse Godstone"] = { world = "GT City", mode = "Story", acts = {9,10} },
+	["Zeni"] = { world = "GT City", mode = "Squadron", act = 1 },
+	["Scouter"] = { world = "GT City", mode = "Squadron", act = 2 },
+	["Power Pole"] = { world = "GT City", mode = "Squadron", act = 3 },
+	["Omega Coins"] = { world = "GT City", mode = "Raid", acts = {1,2,3,4} },
+	["Omega Chest"] = { world = "GT City", mode = "Raid", act = 1 },
+	["Omega Legs"] = { world = "GT City", mode = "Raid", act = 2 },
+	["Omega Horns"] = { world = "GT City", mode = "Raid", act = 3 },
+	["Shanron"] = { world = "GT City", mode = "Raid", act = 4 },
+	["Dragonballs"] = { world = "GT City", mode = "Raid", act = 4 },
 	["Currentbinder Rope"] = { world = "Marine Lobby", mode = "Story", acts = {1,2} },
 	["Depthglass Bottle"] = { world = "Marine Lobby", mode = "Story", acts = {3,4} },
 	["Stormwake Sailcloth"] = { world = "Marine Lobby", mode = "Story", acts = {5,6} },
 	["Beastblood Catalyst"] = { world = "Marine Lobby", mode = "Story", acts = {7,8} },
 	["King's Haki Residue"] = { world = "Marine Lobby", mode = "Story", acts = {9,10} },
+	["Pelli"] = { world = "Marine Lobby", mode = "Squadron", act = 1 },
+	["Bisento"] = { world = "Marine Lobby", mode = "Squadron", act = 2 },
+	["Gryphon"] = { world = "Marine Lobby", mode = "Squadron", act = 3 },
 	["Shinobi Bone"] = { world = "Ninja Village", mode = "Story", acts = {1,2} },
 	["Binding Cloth"] = { world = "Ninja Village", mode = "Story", acts = {3,4} },
 	["Genjutsu Fog Vial"] = { world = "Ninja Village", mode = "Story", acts = {5,6} },
 	["Fuin Script Paper"] = { world = "Ninja Village", mode = "Story", acts = {7,8} },
 	["Chakra Fragment"] = { world = "Ninja Village", mode = "Story", acts = {9,10} },
+	["Headband"] = { world = "Ninja Village", mode = "Squadron", act = 1 },
+	["Karashi's Book"] = { world = "Ninja Village", mode = "Squadron", act = 2 },
+	["Shuriken"] = { world = "Ninja Village", mode = "Squadron", act = 3 },
+	["Gunbai"] = { world = "Ninja Village", mode = "Squadron", act = 4 },
+	["Madora"] = { world = "Ninja Village", mode = "Squadron", act = 4 },
 	["Apostle Iron"] = { world = "Eclipse (Before)", mode = "Story", acts = {1,2} },
 	["Eclipse Stone"] = { world = "Eclipse (Before)", mode = "Story", acts = {3,4} },
 	["Brand Ash"] = { world = "Eclipse (Before)", mode = "Story", acts = {5,6} },
 	["Moonlit Silver"] = { world = "Eclipse (Before)", mode = "Story", acts = {7,8} },
 	["Black Sun Amber"] = { world = "Eclipse (Before)", mode = "Story", acts = {9,10} },
-	["Gryphon"] = { world = "Marine Lobby", mode = "Squadron", act = 3 },
-	["Pelli"] = { world = "Marine Lobby", mode = "Squadron", act = 1 },
-	["Headband"] = { world = "Ninja Village", mode = "Squadron", act = 1 },
-	["Karashi's Book"] = { world = "Ninja Village", mode = "Squadron", act = 2 },
-	["Shuriken"] = { world = "Ninja Village", mode = "Squadron", act = 3 },
-	["Power Pole"] = { world = "GT City", mode = "Squadron", act = 3 },
-	["Scouter"] = { world = "GT City", mode = "Squadron", act = 2 },
-	["Zeni"] = { world = "GT City", mode = "Squadron", act = 1 },
 	["Behelit"] = { world = "Eclipse (Before)", mode = "Squadron", act = 1 },
+	["Caskas Sword"] = { world = "Eclipse (Before)", mode = "Squadron", act = 2 },
 	["Cavalry Saber"] = { world = "Eclipse (Before)", mode = "Squadron", act = 3 },
 	["Dragon Slayer (Evo)"] = { world = "Eclipse (Before)", mode = "Squadron", act = 4 },
-	["White Behelit"] = { world = "Eclipse (Before)", mode = "Raid", act = 1 },
+	["Berserker"] = { world = "Eclipse (Before)", mode = "Squadron", act = 4 },
+	["White Behelit"] = { world = "Eclipse (Before)", mode = "Raid", acts = {1,2,3,4} },
+	["Falcon Chest"] = { world = "Eclipse (Before)", mode = "Raid", act = 1 },
+	["Falcon Legs"] = { world = "Eclipse (Before)", mode = "Raid", act = 2 },
+	["Falcon Head"] = { world = "Eclipse (Before)", mode = "Raid", act = 3 },
+	["Skeleton Knight"] = { world = "Eclipse (Before)", mode = "Raid", act = 4 },
+	["Sword Of Resonance"] = { world = "Eclipse (Before)", mode = "Raid", act = 4 },
 	["Hogyoku Orb"] = { world = "Katakara Bridge", mode = "Challenge", act = 1 },
-    ["Gold"] = { world = "GT City", mode = "Story", acts = {1} }
+	["Puppeteer"] = { world = "Katakara Bridge", mode = "Challenge", act = 1 },
+	["Hunters Cloth"] = { world = "The Hero Hunter", mode = "Challenge", act = 1 },
+	["Garu"] = { world = "The Hero Hunter", mode = "Challenge", act = 1 },
+	["Trait Shards"] = { world = "GT City", mode = "Raid", act = 4 },
+	["Gold"] = { world = "GT City", mode = "Squadron", acts = {1} },
+    ["Baras"] = { world = "Cosmic Throne Hall", mode = "Event", act = 1 }
 }
 
-local MAP_LIST = { "GT City", "Marine Lobby", "Ninja Village", "Eclipse (Before)", "Katakara Bridge" }
+local MAP_LIST = { "GT City", "Marine Lobby", "Ninja Village", "Eclipse (Before)", "Katakara Bridge", "The Hero Hunter", "Katakara Wasteland", "Cosmic Throne Hall" }
 
 local Window = Fluent:CreateWindow({
     Title = "Evo & Stage Automation",
@@ -71,6 +93,7 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = { 
     Main = Window:AddTab({ Title = "Evo Farm", Icon = "sword" }),
+    Kaitun = Window:AddTab({ Title = "Kaitun", Icon = "gantt-chart" }),
     AutoJoin = Window:AddTab({ Title = "Auto Join", Icon = "door-open" })
 }
 
@@ -81,6 +104,8 @@ local unitIds = {}
 
 local farming = false
 local autoJoinEnabled = false
+local kaitunEnabled = false
+local autoEventEnabled = false
 
 local function getEvoData(template)
     if not template then return nil end
@@ -157,8 +182,9 @@ local function saveAutoJoinConfig()
     local difficulty = Options.StageDiff and Options.StageDiff.Value or "Normal"
     local act = Options.StageAct and tonumber(Options.StageAct.Value) or 1
     local enabled = autoJoinEnabled
+    local evEnabled = autoEventEnabled
     
-    local config = { mode = mode, world = world, difficulty = difficulty, act = act, enabled = enabled }
+    local config = { mode = mode, world = world, difficulty = difficulty, act = act, enabled = enabled, evEnabled = evEnabled }
     pcall(function() writefile("EFarmAutoJoin.txt", HttpService:JSONEncode(config)) end)
 end
 
@@ -369,7 +395,184 @@ local autoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
 })
 
 -- ===================================================================
--- CONFIG CHI TIẾT TAB 2: AUTO JOIN
+-- CONFIG CHI TIẾT TAB 2: KAITUN
+-- ===================================================================
+Tabs.Kaitun:AddParagraph({
+    Title = "Hệ thống Kaitun thông minh",
+    Content = "Tự động quét túi đồ xem đã sở hữu Unit chưa. Nếu chưa -> Farm để săn Unit. Nếu đã có -> Tự tìm dữ liệu tiến hóa và Auto Farm nguyên liệu Evo (Hard) không cần chỉnh tay Tab 1."
+})
+
+local kaitunDropdown = Tabs.Kaitun:AddDropdown("KaitunTarget", {
+    Title = "Chọn mục tiêu Kaitun",
+    Values = {"Puppeteer", "Garu", "Baras"}, Multi = false, Default = 1,
+})
+
+local function checkHasUnit(unitName)
+    pcall(function()
+        local m = require(utility)
+        data = m.data
+        playerItems = data.items or {}
+        playerStats = data.stats or {}
+    end)
+    if playerItems[unitName] and playerItems[unitName] > 0 then return true end
+    if playerStats[unitName] and playerStats[unitName] > 0 then return true end
+    for _, char in pairs(data.characters or {}) do
+        if char.name and char.name:lower() == unitName:lower() then return true end
+    end
+    return false
+end
+
+local function getFirstDrop(u)
+    if not u then return nil end
+    for _, m in ipairs(u.missing or {}) do
+        local d = MATERIAL_DROPS[m.mat]
+        if d then return d, m.mat end
+    end
+    return nil
+end
+
+local function enterGame(u, forceDiff)
+    local drop, matName = getFirstDrop(u)
+    if not drop then return false end
+    saveCurrentFarmedMat(matName or "")
+    
+    local act = drop.acts and drop.acts[#drop.acts] or drop.act or 1
+    local diff = forceDiff or diffDropdown.Value
+    local ok, err = create_room:InvokeServer({
+        boosted = true, act = act, difficulty = diff,
+        mode = drop.mode, only_friends = false, world = drop.world
+    })
+    if not ok then return false end
+    print("Kaitun Farming: " .. matName .. " at " .. drop.world .. " A" .. act .. " " .. drop.mode .. " [" .. diff .. "]")
+    task.wait(1.5)
+    pcall(function() start_remote:InvokeServer() end)
+    return true
+end
+
+local function enterKaitunChallenge(unitName, worldName, modeName)
+    saveCurrentFarmedMat("KAITUN_CHALLENGE")
+    
+    local roomArgs = {
+        boosted = true, act = 1, difficulty = "Normal",
+        mode = modeName or "Challenge", only_friends = false, world = worldName
+    }
+    
+    local ok, err = create_room:InvokeServer(roomArgs)
+    if not ok then return false end
+    print("Kaitun Farm Room Created: " .. worldName .. " [" .. (modeName or "Challenge") .. "]")
+    
+    task.wait(0.5)
+    if modeName == "Event" then
+        pcall(function()
+            ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Matchmaking"):WaitForChild("find_match"):InvokeServer({
+                difficulty = "Normal", mode = "Event", world = worldName, act = 1
+            })
+        end)
+    else
+        task.wait(1.0)
+        pcall(function() start_remote:InvokeServer() end)
+    end
+    return true
+end
+
+local function doKaitunLoop()
+    if not kaitunEnabled then return end
+    
+    local targetUnit = kaitunDropdown.Value
+    local challengeWorld = ""
+    local modeName = "Challenge"
+    
+    if targetUnit == "Puppeteer" then
+        challengeWorld = "Katakara Bridge"
+    elseif targetUnit == "Garu" then
+        challengeWorld = "The Hero Hunter"
+    elseif targetUnit == "Baras" then
+        challengeWorld = "Cosmic Throne Hall"
+        modeName = "Event"
+    else
+        return
+    end
+
+    local hasUnit = checkHasUnit(targetUnit)
+    if not hasUnit then
+        if inHub and create_room then
+            if not enterKaitunChallenge(targetUnit, challengeWorld, modeName) then
+                Options.KaitunToggle:SetValue(false)
+                return
+            end
+        end
+    else
+        local u = nil
+        for _, unit in ipairs(units) do
+            if unit.name == targetUnit then
+                u = unit
+                break
+            end
+        end
+
+        if not u then
+            pcall(function()
+                local m = require(utility)
+                if m and m.data and m.data.characters then
+                    for id, char in pairs(m.data.characters) do
+                        if char.name == targetUnit then
+                            local template = findTemplate(targetUnit)
+                            local evo = template and getEvoData(template)
+                            if evo then
+                                u = { name = targetUnit, fullCost = evo.cost, missing = {}, numMissing = 1 }
+                                break
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+
+        if not u then
+            Fluent:Notify({ Title = "Kaitun thông báo", Content = "Đã tìm thấy " .. targetUnit .. " nhưng chưa lấy được bảng công thức Evo từ game!", Duration = 5 })
+            Options.KaitunToggle:SetValue(false)
+            return
+        end
+
+        refreshData(u)
+        if u.numMissing == 0 then
+            Fluent:Notify({ Title = "Kaitun hoàn thành", Content = "Unit " .. targetUnit .. " đã đủ sạch nguyên liệu tiến hoá!", Duration = 5 })
+            Options.KaitunToggle:SetValue(false)
+            return
+        end
+
+        if inHub and create_room and start_remote then
+            if not enterGame(u, "Hard") then
+                Options.KaitunToggle:SetValue(false)
+                return
+            end
+        end
+    end
+    
+    while kaitunEnabled do task.wait(5) end
+end
+
+local kaitunToggle = Tabs.Kaitun:AddToggle("KaitunToggle", {
+    Title = "Kích hoạt Kaitun Thông Minh",
+    Description = "Chạy tiến trình tự động Check & Farm theo mục tiêu bên trên",
+    Default = false,
+})
+
+local autoEventToggle -- Định nghĩa trước để tránh lỗi nill
+
+kaitunToggle:OnChanged(function(val)
+    kaitunEnabled = val
+    if val then
+        if farming then autoFarmToggle:SetValue(false) end
+        if autoJoinEnabled then autoJoinToggle:SetValue(false) end
+        if autoEventEnabled and autoEventToggle then autoEventToggle:SetValue(false) end
+        if inHub then task.spawn(doKaitunLoop) end
+    end
+end)
+
+
+-- ===================================================================
+-- CONFIG CHI TIẾT TAB 3: AUTO JOIN
 -- ===================================================================
 Tabs.AutoJoin:AddParagraph({ 
     Title = "Hệ thống thiết lập phòng chơi", 
@@ -378,7 +581,7 @@ Tabs.AutoJoin:AddParagraph({
 
 local stageModeDropdown = Tabs.AutoJoin:AddDropdown("StageMode", {
     Title = "Chế độ (Mode)",
-    Values = {"Story", "Squadron", "Raid", "Challenge"}, Multi = false, Default = 1,
+    Values = {"Story", "Squadron", "Raid", "Challenge", "Event"}, Multi = false, Default = 1,
 })
 stageModeDropdown:OnChanged(function() saveAutoJoinConfig() end)
 
@@ -406,6 +609,17 @@ local autoJoinToggle = Tabs.AutoJoin:AddToggle("AutoJoinStage", {
     Default = false,
 })
 
+Tabs.AutoJoin:AddParagraph({ 
+    Title = "Auto Cosmic Throne Hall Event", 
+    Content = "Tự động tạo phòng Event, tìm trận đấu và RỜI TRẬN RA HUB ngay khi hoàn thành màn chơi." 
+})
+
+autoEventToggle = Tabs.AutoJoin:AddToggle("AutoEventStage", {
+    Title = "Kích hoạt Auto Event (Cosmic Throne Hall)",
+    Description = "Bật để tự động đi Event và Out thẳng ra Hub khi kết thúc.",
+    Default = false,
+})
+
 -- ===================================================================
 -- THUẬT TOÁN LOGIC XỬ LÝ VÀ ĐIỀU HƯỚNG REMOTES
 -- ===================================================================
@@ -419,31 +633,9 @@ local function setAutoJoinOff()
     autoJoinToggle:SetValue(false)
 end
 
-local function getFirstDrop(u)
-    if not u then return nil end
-    for _, m in ipairs(u.missing or {}) do
-        local d = MATERIAL_DROPS[m.mat]
-        if d then return d, m.mat end
-    end
-    return nil
-end
-
-local function enterGame(u)
-    local drop, matName = getFirstDrop(u)
-    if not drop then return false end
-    saveCurrentFarmedMat(matName or "")
-    
-    local act = drop.acts and drop.acts[#drop.acts] or drop.act or 1
-    local diff = diffDropdown.Value
-    local ok, err = create_room:InvokeServer({
-        boosted = true, act = act, difficulty = diff,
-        mode = drop.mode, only_friends = false, world = drop.world
-    })
-    if not ok then return false end
-    print("Farming: " .. matName .. " at " .. drop.world .. " A" .. act .. " " .. drop.mode)
-    task.wait(1.5)
-    pcall(function() start_remote:InvokeServer() end)
-    return true
+local function setAutoEventOff()
+    autoEventEnabled = false
+    if autoEventToggle then autoEventToggle:SetValue(false) end
 end
 
 local function enterGameManual()
@@ -461,8 +653,44 @@ local function enterGameManual()
     })
     if not ok then return false end
     print("Auto Join Stage: " .. world .. " - Mode: " .. mode .. " - Act: " .. tostring(act) .. " [" .. diff .. "]")
-    task.wait(1.5)
-    pcall(function() start_remote:InvokeServer() end)
+    
+    if mode == "Event" then
+        pcall(function()
+            ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Matchmaking"):WaitForChild("find_match"):InvokeServer({
+                difficulty = diff, mode = mode, world = world, act = act
+            })
+        end)
+    else
+        task.wait(1.5)
+        pcall(function() start_remote:InvokeServer() end)
+    end
+    return true
+end
+
+local function enterGameEventManual()
+    saveCurrentFarmedMat("MANUAL_EVENT_STAGE")
+    saveAutoJoinConfig()
+
+    local ok, err = pcall(function()
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Play"):WaitForChild("create_room"):InvokeServer({
+            difficulty = "Normal",
+            mode = "Event",
+            world = "Cosmic Throne Hall",
+            act = 1
+        })
+    end)
+    if not ok then return false end
+    print("Auto Event Room Created: Cosmic Throne Hall")
+    task.wait(0.5)
+
+    pcall(function()
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Matchmaking"):WaitForChild("find_match"):InvokeServer({
+            difficulty = "Normal",
+            mode = "Event",
+            world = "Cosmic Throne Hall",
+            act = 1
+        })
+    end)
     return true
 end
 
@@ -498,8 +726,7 @@ pcall(function() gameTeleport = ReplicatedStorage.Remotes.Players:WaitForChild("
 
 if gameEnding then
     gameEnding.OnClientEvent:Connect(function()
-        -- FIX CHÍNH: Nếu cả 2 đều tắt, lập tức hủy xử lý để không bị ép buộc Replay
-        if not autoJoinEnabled and not farming then
+        if not autoJoinEnabled and not farming and not kaitunEnabled and not autoEventEnabled then
             print("Hệ thống tự động đang TẮT. Dừng gửi lệnh Replay lên Server.")
             return
         end
@@ -517,20 +744,90 @@ if gameEnding then
 
         if not endScreen then
             if gameReplay then
-                if autoJoinEnabled or farming then pcall(function() gameReplay:FireServer() end) end
+                if kaitunEnabled and kaitunDropdown.Value == "Baras" and loadCurrentFarmedMat() == "KAITUN_CHALLENGE" then
+                    if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
+                elseif autoEventEnabled and loadCurrentFarmedMat() == "MANUAL_EVENT_STAGE" then
+                    if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
+                elseif autoJoinEnabled or farming or kaitunEnabled then 
+                    pcall(function() gameReplay:FireServer() end) 
+                end
             end
             return
         end
 
         pcall(scanRewards, endScreen)
 
-        -- Ưu tiên 1: Auto Join Stage thủ công ở Tab 2
+        if autoEventEnabled or loadCurrentFarmedMat() == "MANUAL_EVENT_STAGE" then
+            print("Auto Event: Phát hiện hoàn thành màn chơi, tự động Out thẳng về Hub.")
+            if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
+            return
+        end
+
         if autoJoinEnabled then
             if gameReplay then pcall(function() gameReplay:FireServer() end) end
             return
         end
 
-        -- Ưu tiên 2: Auto Farm Unit ở Tab 1
+        if kaitunEnabled then
+            local targetUnit = kaitunDropdown.Value
+            local hasUnit = checkHasUnit(targetUnit)
+            local trackedMat = loadCurrentFarmedMat()
+            
+            if trackedMat == "KAITUN_CHALLENGE" then
+                if targetUnit == "Baras" then
+                    print("Kaitun Baras: Xong một màn, tiến hành Out ra Hub luôn không Replay.")
+                    if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
+                else
+                    if hasUnit then
+                        if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
+                    else
+                        if gameReplay then pcall(function() gameReplay:FireServer() end) end
+                    end
+                end
+                return
+            end
+            
+            local u = nil
+            for _, unit in ipairs(units) do
+                if unit.name == targetUnit then
+                    u = unit
+                    break
+                end
+            end
+            
+            if u then
+                pcall(refreshData, u)
+                pcall(logMaterialStatus, u)
+            end
+            
+            if not u or u.numMissing == 0 then
+                Options.KaitunToggle:SetValue(false)
+                if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
+                return
+            end
+            
+            local curMatDone = true
+            if trackedMat and trackedMat ~= "" and trackedMat ~= "MANUAL_STAGE" and trackedMat ~= "KAITUN_CHALLENGE" then
+                local neededAmount = u.fullCost[trackedMat] or 0
+                local currentHave = playerItems[trackedMat] or playerStats[trackedMat] or 0
+                if currentHave < neededAmount then curMatDone = false end
+            else
+                local _, fallbackMat = getFirstDrop(u)
+                if fallbackMat then
+                    trackedMat = fallbackMat
+                    saveCurrentFarmedMat(fallbackMat)
+                    curMatDone = false
+                end
+            end
+
+            if curMatDone then
+                if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
+            else
+                if gameReplay then pcall(function() gameReplay:FireServer() end) end
+            end
+            return
+        end
+
         if not farming then return end
 
         local u = selectedUnit
@@ -545,14 +842,12 @@ if gameEnding then
             return
         end
 
-        -- FIX ĐỒNG BỘ: Đọc trực tiếp vật phẩm đang theo dõi từ file lưu cấu hình
         local trackedMat = loadCurrentFarmedMat()
         local curMatDone = true
         
         if trackedMat and trackedMat ~= "" and trackedMat ~= "MANUAL_STAGE" then
             local neededAmount = u.fullCost[trackedMat] or 0
             local currentHave = playerItems[trackedMat] or playerStats[trackedMat] or 0
-            -- Kiểm tra chuẩn xác số lượng thực tế trong túi đồ
             if currentHave < neededAmount then curMatDone = false end
         else
             local _, fallbackMat = getFirstDrop(u)
@@ -564,10 +859,8 @@ if gameEnding then
         end
 
         if curMatDone then
-            -- Thực sự đủ nguyên liệu mới cho thoát phòng để đổi map
             if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
         else
-            -- Chưa đủ nguyên liệu, tiếp tục replay cày tiếp màn hiện tại
             if gameReplay and farming then pcall(function() gameReplay:FireServer() end) end
         end
     end)
@@ -590,10 +883,17 @@ local function doFarmLoop()
 end
 
 local function doAutoJoinLoop()
-    if inHub and create_room and start_remote then
+    if inHub and create_room then
         if not enterGameManual() then setAutoJoinOff(); return end
     end
     while autoJoinEnabled do task.wait(5) end
+end
+
+local function doAutoEventLoop()
+    if inHub and create_room then
+        if not enterGameEventManual() then setAutoEventOff(); return end
+    end
+    while autoEventEnabled do task.wait(5) end
 end
 
 unitDropdown:OnChanged(function(val)
@@ -611,8 +911,8 @@ unitDropdown:OnChanged(function(val)
 end)
 
 autoFarmToggle:OnChanged(function(value)
-    if value and autoJoinEnabled then
-        Fluent:Notify({ Title = "Xung đột", Content = "Vui lòng tắt Auto Join Stage trước!", Duration = 4 })
+    if value and (autoJoinEnabled or kaitunEnabled or autoEventEnabled) then
+        Fluent:Notify({ Title = "Xung đột", Content = "Vui lòng tắt các tính năng Auto khác trước!", Duration = 4 })
         autoFarmToggle:SetValue(false)
         return
     end
@@ -630,8 +930,8 @@ autoFarmToggle:OnChanged(function(value)
 end)
 
 autoJoinToggle:OnChanged(function(value)
-    if value and farming then
-        Fluent:Notify({ Title = "Xung đột", Content = "Vui lòng tắt Auto Farm bên Tab 1 trước!", Duration = 4 })
+    if value and (farming or kaitunEnabled or autoEventEnabled) then
+        Fluent:Notify({ Title = "Xung đột", Content = "Vui lòng tắt các tính năng Auto khác trước!", Duration = 4 })
         autoJoinToggle:SetValue(false)
         return
     end
@@ -650,6 +950,28 @@ autoJoinToggle:OnChanged(function(value)
     end
 end)
 
+autoEventToggle:OnChanged(function(value)
+    if value and (farming or kaitunEnabled or autoJoinEnabled) then
+        Fluent:Notify({ Title = "Xung đột", Content = "Vui lòng tắt các tính năng Auto khác trước!", Duration = 4 })
+        if autoEventToggle then autoEventToggle:SetValue(false) end
+        return
+    end
+
+    autoEventEnabled = value
+    saveAutoJoinConfig()
+
+    if value then
+        if inHub then
+            task.spawn(doAutoEventLoop)
+        else
+            Fluent:Notify({ Title = "Auto Event", Content = "Đang trong game - Sẽ tự động Out ra Hub khi hết trận.", Duration = 4 })
+        end
+    else
+        Fluent:Notify({ Title = "Hệ thống", Content = "Đã hủy chu kỳ Auto Event.", Duration = 3 })
+    end
+end)
+
+-- SETTINGS TAB
 local TabsS = Window:AddTab({ Title = "Settings", Icon = "settings" })
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
@@ -663,7 +985,7 @@ SaveManager:BuildConfigSection(TabsS)
 Window:SelectTab(1)
 SaveManager:LoadAutoloadConfig()
 
--- KHỞI TẠO ĐỒNG BỘ CONFIG CŨ CHUẨN XÁC
+-- CONFIG LOAD SYNC
 task.spawn(function()
     task.wait(0.5)
     
@@ -676,6 +998,8 @@ task.spawn(function()
         task.wait(0.2)
         if savedJoin.enabled and not farming then
             autoJoinToggle:SetValue(true)
+        elseif savedJoin.evEnabled and not farming and not autoJoinEnabled and autoEventToggle then
+            autoEventToggle:SetValue(true)
         end
     end
 
@@ -694,9 +1018,14 @@ task.spawn(function()
     if selectedUnit then refreshData(selectedUnit) end
     if farming and inHub and selectedUnit and selectedUnit.numMissing > 0 then
         task.spawn(doFarmLoop)
+    elseif kaitunEnabled and inHub then
+        task.spawn(doKaitunLoop)
     elseif autoJoinEnabled and inHub then
         task.spawn(doAutoJoinLoop)
+    elseif autoEventEnabled and inHub then
+        task.spawn(doAutoEventLoop)
     end
 end)
 
-Fluent:Notify({ Title = "Hệ thống", Content = "Đã sửa hoàn toàn lỗi thông báo ảo và khóa bật tắt Toggle!", Duration = 5 })
+Fluent:Notify({ Title = "Hệ thống", Content = "Đã sửa lỗi load & Tích hợp Auto Event thành công!", Duration = 5 })
+ 
