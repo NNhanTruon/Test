@@ -75,10 +75,12 @@ local MATERIAL_DROPS = {
 	["Hunters Cloth"] = { world = "The Hero Hunter", mode = "Challenge", act = 1 },
 	["Garu"] = { world = "The Hero Hunter", mode = "Challenge", act = 1 },
 	["Trait Shards"] = { world = "GT City", mode = "Raid", act = 4 },
-	["Gold"] = { world = "GT City", mode = "Squadron", acts = {1} },
+	["Gold"] = { world = "GT City", mode = "Story", acts = {1} },
+    -- THÊM MỤC TIÊU EVO CỦA BARAS VÀO ĐÂY NẾU CÓ (Mặc định cấu hình map sự kiện)
+    ["Baras"] = { world = "Cosmic Throne Hall", mode = "Event", act = 1 }
 }
 
-local MAP_LIST = { "GT City", "Marine Lobby", "Ninja Village", "Eclipse (Before)", "Katakara Bridge", "The Hero Hunter", "Katakara Wasteland" }
+local MAP_LIST = { "GT City", "Marine Lobby", "Ninja Village", "Eclipse (Before)", "Katakara Bridge", "The Hero Hunter", "Katakara Wasteland", "Cosmic Throne Hall" }
 
 local Window = Fluent:CreateWindow({
     Title = "Evo & Stage Automation",
@@ -392,16 +394,16 @@ local autoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
 })
 
 -- ===================================================================
--- CONFIG CHI TIẾT TAB 2: KAITUN (dropdown MỚI)
+-- CONFIG CHI TIẾT TAB 2: KAITUN (dropdown ĐÃ CẬP NHẬT BARAS)
 -- ===================================================================
 Tabs.Kaitun:AddParagraph({
     Title = "Hệ thống Kaitun thông minh",
-    Content = "Tự động quét túi đồ xem đã sở hữu Unit chưa. Nếu chưa -> Farm Challenge (Normal) săn Unit. Nếu đã có -> Tự tìm dữ liệu tiến hóa và Auto Farm nguyên liệu Evo (Hard) không cần chỉnh tay Tab 1."
+    Content = "Tự động quét túi đồ xem đã sở hữu Unit chưa. Nếu chưa -> Farm để săn Unit. Nếu đã có -> Tự tìm dữ liệu tiến hóa và Auto Farm nguyên liệu Evo (Hard) không cần chỉnh tay Tab 1."
 })
 
 local kaitunDropdown = Tabs.Kaitun:AddDropdown("KaitunTarget", {
     Title = "Chọn mục tiêu Kaitun",
-    Values = {"Puppeteer", "Garu"}, Multi = false, Default = 1,
+    Values = {"Puppeteer", "Garu", "Baras"}, Multi = false, Default = 1,
 })
 
 local function checkHasUnit(unitName)
@@ -446,16 +448,31 @@ local function enterGame(u, forceDiff)
     return true
 end
 
-local function enterKaitunChallenge(worldName)
+-- Hàm tùy biến riêng cho việc tạo phòng/matchmaking lấy unit
+local function enterKaitunChallenge(unitName, worldName, modeName)
     saveCurrentFarmedMat("KAITUN_CHALLENGE")
-    local ok, err = create_room:InvokeServer({
+    
+    local roomArgs = {
         boosted = true, act = 1, difficulty = "Normal",
-        mode = "Challenge", only_friends = false, world = worldName
-    })
+        mode = modeName or "Challenge", only_friends = false, world = worldName
+    }
+    
+    local ok, err = create_room:InvokeServer(roomArgs)
     if not ok then return false end
-    print("Kaitun Farm Challenge: " .. worldName .. " [Normal]")
-    task.wait(1.5)
-    pcall(function() start_remote:InvokeServer() end)
+    print("Kaitun Farm Room Created: " .. worldName .. " [" .. (modeName or "Challenge") .. "]")
+    
+    task.wait(0.5)
+    -- Nếu là dạng Event/Matchmaking đặc biệt như Baras, kích hoạt thêm Remote Matchmaking
+    if modeName == "Event" then
+        pcall(function()
+            ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Matchmaking"):WaitForChild("find_match"):InvokeServer({
+                difficulty = "Normal", mode = "Event", world = worldName, act = 1
+            })
+        end)
+    else
+        task.wait(1.0)
+        pcall(function() start_remote:InvokeServer() end)
+    end
     return true
 end
 
@@ -464,20 +481,24 @@ local function doKaitunLoop()
     
     local targetUnit = kaitunDropdown.Value
     local challengeWorld = ""
+    local modeName = "Challenge"
     
     if targetUnit == "Puppeteer" then
         challengeWorld = "Katakara Bridge"
     elseif targetUnit == "Garu" then
         challengeWorld = "The Hero Hunter"
+    elseif targetUnit == "Baras" then
+        challengeWorld = "Cosmic Throne Hall"
+        modeName = "Event"
     else
         return
     end
 
     local hasUnit = checkHasUnit(targetUnit)
     if not hasUnit then
-        -- Chưa có unit -> Đi farm challenge độ khó Normal
-        if inHub and create_room and start_remote then
-            if not enterKaitunChallenge(challengeWorld) then
+        -- Chưa có unit -> Tạo phòng tương ứng
+        if inHub and create_room then
+            if not enterKaitunChallenge(targetUnit, challengeWorld, modeName) then
                 Options.KaitunToggle:SetValue(false)
                 return
             end
@@ -561,7 +582,7 @@ Tabs.AutoJoin:AddParagraph({
 
 local stageModeDropdown = Tabs.AutoJoin:AddDropdown("StageMode", {
     Title = "Chế độ (Mode)",
-    Values = {"Story", "Squadron", "Raid", "Challenge"}, Multi = false, Default = 1,
+    Values = {"Story", "Squadron", "Raid", "Challenge", "Event"}, Multi = false, Default = 1,
 })
 stageModeDropdown:OnChanged(function() saveAutoJoinConfig() end)
 
@@ -617,8 +638,17 @@ local function enterGameManual()
     })
     if not ok then return false end
     print("Auto Join Stage: " .. world .. " - Mode: " .. mode .. " - Act: " .. tostring(act) .. " [" .. diff .. "]")
-    task.wait(1.5)
-    pcall(function() start_remote:InvokeServer() end)
+    
+    if mode == "Event" then
+        pcall(function()
+            ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Matchmaking"):WaitForChild("find_match"):InvokeServer({
+                difficulty = diff, mode = mode, world = world, act = act
+            })
+        end)
+    else
+        task.wait(1.5)
+        pcall(function() start_remote:InvokeServer() end)
+    end
     return true
 end
 
@@ -802,7 +832,7 @@ local function doFarmLoop()
 end
 
 local function doAutoJoinLoop()
-    if inHub and create_room and start_remote then
+    if inHub and create_room then
         if not enterGameManual() then setAutoJoinOff(); return end
     end
     while autoJoinEnabled do task.wait(5) end
@@ -914,5 +944,5 @@ task.spawn(function()
     end
 end)
 
-Fluent:Notify({ Title = "Hệ thống", Content = "Đã tích hợp Dropdown Kaitun độc lập thành công!", Duration = 5 })
+Fluent:Notify({ Title = "Hệ thống", Content = "Đã tích hợp thêm Unit Baras vào Kaitun!", Duration = 5 })
  
