@@ -1,4 +1,4 @@
-Repeat task.wait() until game:IsLoaded()
+repeat task.wait() until game:IsLoaded()
 wait(5)
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
@@ -106,6 +106,12 @@ local farming = false
 local autoJoinEnabled = false
 local kaitunEnabled = false
 local autoEventEnabled = false
+
+-- Khai báo trước các biến UI Toggles để tránh lỗi Upvalue / Forward Reference
+local autoFarmToggle = nil
+local autoJoinToggle = nil
+local autoEventToggle = nil
+local kaitunToggle = nil
 
 local function getEvoData(template)
     if not template then return nil end
@@ -336,29 +342,7 @@ local function logMaterialStatus(unit)
     print("=====================================")
 end
 
-Tabs.Main:AddButton({
-    Title = "Cập nhật số liệu Material",
-    Description = "Làm tươi số lượng vật phẩm trong túi đồ hiện tại",
-    Callback = function()
-        pcall(function()
-            refreshData(selectedUnit)
-            if selectedUnit then pcall(showUnitInfo, selectedUnit); pcall(logMaterialStatus, selectedUnit) end
-        end)
-        Fluent:Notify({ Title = "Cập nhật", Content = "Đã làm mới số liệu kho đồ!", Duration = 3 })
-    end
-})
-
-local unitDropdown = Tabs.Main:AddDropdown("UnitSelect", {
-    Title = "Chọn mục tiêu Unit",
-    Values = unitNames, Multi = false, Default = 1,
-})
-
-local diffDropdown = Tabs.Main:AddDropdown("Difficulty", {
-    Title = "Độ khó phòng tạo (Auto Farm)",
-    Values = {"Normal", "Hard"}, Multi = false, Default = 1,
-})
-
-function showUnitInfo(unit)
+local function showUnitInfo(unit)
     if not unit then return end
     local lines = {}
     local s = unit.shiny and " [SHINY]" or ""
@@ -388,7 +372,29 @@ function showUnitInfo(unit)
     Fluent:Notify({ Title = unit.name, Content = table.concat(lines, "\n"), Duration = 10 })
 end
 
-local autoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
+Tabs.Main:AddButton({
+    Title = "Cập nhật số liệu Material",
+    Description = "Làm tươi số lượng vật phẩm trong túi đồ hiện tại",
+    Callback = function()
+        pcall(function()
+            refreshData(selectedUnit)
+            if selectedUnit then pcall(showUnitInfo, selectedUnit); pcall(logMaterialStatus, selectedUnit) end
+        end)
+        Fluent:Notify({ Title = "Cập nhật", Content = "Đã làm mới số liệu kho đồ!", Duration = 3 })
+    end
+})
+
+local unitDropdown = Tabs.Main:AddDropdown("UnitSelect", {
+    Title = "Chọn mục tiêu Unit",
+    Values = unitNames, Multi = false, Default = 1,
+})
+
+local diffDropdown = Tabs.Main:AddDropdown("Difficulty", {
+    Title = "Độ khó phòng tạo (Auto Farm)",
+    Values = {"Normal", "Hard"}, Multi = false, Default = 1,
+})
+
+autoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
     Title = "Kích hoạt Auto Farm Theo Unit",
     Description = "Tự động tìm map, nhảy map khi đủ nguyên liệu.",
     Default = false,
@@ -497,7 +503,7 @@ local function doKaitunLoop()
     if not hasUnit then
         if inHub and create_room then
             if not enterKaitunChallenge(targetUnit, challengeWorld, modeName) then
-                Options.KaitunToggle:SetValue(false)
+                if Options.KaitunToggle then Options.KaitunToggle:SetValue(false) end
                 return
             end
         end
@@ -530,20 +536,20 @@ local function doKaitunLoop()
 
         if not u then
             Fluent:Notify({ Title = "Kaitun thông báo", Content = "Đã tìm thấy " .. targetUnit .. " nhưng chưa lấy được bảng công thức Evo từ game!", Duration = 5 })
-            Options.KaitunToggle:SetValue(false)
+            if Options.KaitunToggle then Options.KaitunToggle:SetValue(false) end
             return
         end
 
         refreshData(u)
         if u.numMissing == 0 then
             Fluent:Notify({ Title = "Kaitun hoàn thành", Content = "Unit " .. targetUnit .. " đã đủ sạch nguyên liệu tiến hoá!", Duration = 5 })
-            Options.KaitunToggle:SetValue(false)
+            if Options.KaitunToggle then Options.KaitunToggle:SetValue(false) end
             return
         end
 
         if inHub and create_room and start_remote then
             if not enterGame(u, "Hard") then
-                Options.KaitunToggle:SetValue(false)
+                if Options.KaitunToggle then Options.KaitunToggle:SetValue(false) end
                 return
             end
         end
@@ -552,19 +558,17 @@ local function doKaitunLoop()
     while kaitunEnabled do task.wait(5) end
 end
 
-local kaitunToggle = Tabs.Kaitun:AddToggle("KaitunToggle", {
+kaitunToggle = Tabs.Kaitun:AddToggle("KaitunToggle", {
     Title = "Kích hoạt Kaitun Thông Minh",
     Description = "Chạy tiến trình tự động Check & Farm theo mục tiêu bên trên",
     Default = false,
 })
 
-local autoEventToggle -- Định nghĩa trước để tránh lỗi nill
-
 kaitunToggle:OnChanged(function(val)
     kaitunEnabled = val
     if val then
-        if farming then autoFarmToggle:SetValue(false) end
-        if autoJoinEnabled then autoJoinToggle:SetValue(false) end
+        if farming and autoFarmToggle then autoFarmToggle:SetValue(false) end
+        if autoJoinEnabled and autoJoinToggle then autoJoinToggle:SetValue(false) end
         if autoEventEnabled and autoEventToggle then autoEventToggle:SetValue(false) end
         if inHub then task.spawn(doKaitunLoop) end
     end
@@ -603,7 +607,7 @@ local stageActDropdown = Tabs.AutoJoin:AddDropdown("StageAct", {
 })
 stageActDropdown:OnChanged(function() saveAutoJoinConfig() end)
 
-local autoJoinToggle = Tabs.AutoJoin:AddToggle("AutoJoinStage", {
+autoJoinToggle = Tabs.AutoJoin:AddToggle("AutoJoinStage", {
     Title = "Kích hoạt Auto Join Stage",
     Description = inHub and "Tự động tạo phòng và bắt đầu màn chơi đã chọn" or "Đang trong trận - Giữ trạng thái để tự Auto Replay",
     Default = false,
@@ -625,12 +629,12 @@ autoEventToggle = Tabs.AutoJoin:AddToggle("AutoEventStage", {
 -- ===================================================================
 local function setFarmOff()
     farming = false
-    autoFarmToggle:SetValue(false)
+    if autoFarmToggle then autoFarmToggle:SetValue(false) end
 end
 
 local function setAutoJoinOff()
     autoJoinEnabled = false
-    autoJoinToggle:SetValue(false)
+    if autoJoinToggle then autoJoinToggle:SetValue(false) end
 end
 
 local function setAutoEventOff()
@@ -801,7 +805,7 @@ if gameEnding then
             end
             
             if not u or u.numMissing == 0 then
-                Options.KaitunToggle:SetValue(false)
+                if Options.KaitunToggle then Options.KaitunToggle:SetValue(false) end
                 if gameTeleport then pcall(function() gameTeleport:FireServer() end) end
                 return
             end
@@ -996,7 +1000,7 @@ task.spawn(function()
         pcall(function() stageDiffDropdown:SetValue(savedJoin.difficulty) end)
         pcall(function() stageActDropdown:SetValue(tostring(savedJoin.act)) end)
         task.wait(0.2)
-        if savedJoin.enabled and not farming then
+        if savedJoin.enabled and not farming and autoJoinToggle then
             autoJoinToggle:SetValue(true)
         elseif savedJoin.evEnabled and not farming and not autoJoinEnabled and autoEventToggle then
             autoEventToggle:SetValue(true)
